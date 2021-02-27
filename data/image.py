@@ -5,32 +5,43 @@ import torchvision.transforms as transforms
 
 class Image(object):
     def __init__(self, args):
-        if args.dataset == 'cifar10':
-            Dataset = datasets.CIFAR10
+        dataset_dir = '/workspace/ImageNet/dataset/imagenet/'
+        traindir = os.path.join(dataset_dir+'train')
+        valdir = os.path.join(dataset_dir+'val')
 
-            mean = [0.49139968, 0.48215827, 0.44653124]
-            std = [0.24703233, 0.24348505, 0.26158768]
+        args.dataset == 'imagenet':
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225])
 
-            normalize = transforms.Normalize(mean, std)
+        jittering = utils.ColorJitter(brightness=0.4, contrast=0.4,
+                                      saturation=0.4)
+        lighting = utils.Lighting(alphastd=0.1,
+                                  eigval=[0.2175, 0.0188, 0.0045],
+                                  eigvec=[[-0.5675, 0.7192, 0.4009],
+                                          [-0.5808, -0.0045, -0.8140],
+                                          [-0.5836, -0.6948, 0.4203]])
 
-            transform = transforms.Compose([
-                transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                normalize,
-            ])
-        elif args.dataset == 'MNIST':
-            Dataset = datasets.MNIST
-        else:
-            raise NotImplementedError(f'Unknown dataset: {args.dataset}')
+        Dataset = datasets.ImageFolder(
+        traindir,
+        transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            jittering,
+            lighting,
+            normalize,
+        ]))
+
+        train_sampler = None
 
         self.train = t.utils.data.DataLoader(
-            Dataset(root='./data', train=True, transform=transform, download=True),
-            batch_size=args.batch_size, shuffle=True,
-            num_workers=args.num_workers, pin_memory=True)
+            train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+            num_workers=args.num_workers, pin_memory=True, sampler=train_sampler)
 
         self.valid = t.utils.data.DataLoader(
-            Dataset(root='./data', train=False, transform=transforms.Compose([
+            datasets.ImageFolder(valdir, transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 normalize,
             ])),

@@ -17,7 +17,7 @@ def add_argument_group(name):
 
 # Network
 net_arg = add_argument_group('Network')
-net_arg.add_argument('--network_type', type=str, choices=['rnn', 'cnn'], default='rnn')
+net_arg.add_argument('--network_type', type=str, choices=['rnn', 'cnn'], default='cnn')
 
 # Controller
 net_arg.add_argument('--num_blocks', type=int, default=12)
@@ -66,7 +66,7 @@ net_arg.add_argument('--cnn_hid', type=int, default=64)
 
 # Data
 data_arg = add_argument_group('Data')
-data_arg.add_argument('--dataset', type=str, default='ptb')
+data_arg.add_argument('--dataset', type=str, default='imagenet')
 
 
 # Training / test parameters
